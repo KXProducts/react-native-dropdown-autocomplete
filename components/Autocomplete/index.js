@@ -13,9 +13,10 @@ class Autocomplete extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      inputValue: "",
+      inputValue: props.inputValue || "",
       loading: false,
       filteredItems: [],
+      hasChanged: false,
     };
     this.mounted = false;
     this.timer = null;
@@ -27,21 +28,32 @@ class Autocomplete extends Component {
     this.handleBlur = this.handleBlur.bind(this);
     this.promisifySetState = this.promisifySetState.bind(this);
   }
-
+  static getDerivedStateFromProps(nextProps, state) {
+    console.log(nextProps);
+    if(!state.hasChanged){
+      return {
+        inputValue: nextProps.inputValue,
+      };
+    }
+    return null;
+  }
   handleInputChange(text) {
-    const {minimumCharactersCount, waitInterval} = this.props;
+    const {minimumCharactersCount, waitInterval, handleSelectItem} = this.props;
     clearTimeout(this.timer);
-    this.setState({inputValue: text});
+    this.setState({hasChanged: true}, () =>{
+      this.setState({inputValue: text,});
+      handleSelectItem({id: '', name: text});
+    });
     if (text.length > minimumCharactersCount) {
       this.setState(
-        {
-          loading: true,
-        },
-        () => {
-          if (this.mounted) {
-            this.timer = setTimeout(this.triggerChange, waitInterval);
-          }
-        },
+          {
+            loading: true,
+          },
+          () => {
+            if (this.mounted) {
+              this.timer = setTimeout(this.triggerChange, waitInterval);
+            }
+          },
       );
     } else {
       this.setState({loading: false});
@@ -50,8 +62,8 @@ class Autocomplete extends Component {
 
   promisifySetState(state) {
     return (
-      this.mounted &&
-      new Promise(resolve => this.setState(state, () => resolve()))
+        this.mounted &&
+        new Promise(resolve => this.setState(state, () => resolve()))
     );
   }
 
@@ -75,9 +87,9 @@ class Autocomplete extends Component {
     } else {
       const filteredItems = items.filter(item => {
         return (
-          valueExtractor(item)
-            .toLowerCase()
-            .search(inputValue.toLowerCase()) !== -1
+            valueExtractor(item)
+                .toLowerCase()
+                .search(inputValue.toLowerCase()) !== -1
         );
       });
 
@@ -100,15 +112,17 @@ class Autocomplete extends Component {
   }
 
   setItem(value) {
-    const { index, handleSelectItem, valueExtractor, resetOnSelect } = this.props;
+    if(value.id === '')
+      value.name='';
+    const {index, handleSelectItem, valueExtractor} = this.props;
+    const capitalizedValue = capitalizeFirstLetter(valueExtractor(value));
+
+    this.setState({hasChanged: false,}, () => {
+      this.setState({inputValue: capitalizedValue});
+    });
+    console.log(capitalizedValue);
+
     handleSelectItem(value, index);
-      
-    if (resetOnSelect) {
-      this.setState({ inputValue: '' });
-    } else {
-        const capitalizedValue = capitalizeFirstLetter(valueExtractor(value));
-        this.setState({inputValue: capitalizedValue});
-    }
   }
 
   componentDidMount() {
@@ -146,49 +160,50 @@ class Autocomplete extends Component {
       data,
       ...dropdownProps
     } = this.props;
-
+    console.log(filteredItems);
+    console.log(data);
     return (
-      <Fragment>
+        <Fragment>
         <View style={[styles.inputContainerStyle, inputContainerStyle]}>
-          {renderIcon()}
-          <TextInput
-            ref={ref => {
-              this.container = ref;
-            }}
-            onBlur={event => this.handleBlur(event)}
-            style={[styles.input, inputStyle]}
-            placeholder={placeholder}
-            placeholderTextColor={placeholderColor || theme.textSecondary}
-            value={inputValue}
-            autoCorrect={autoCorrect}
-            onChangeText={text => this.handleInputChange(text)}
-            onFocus={event => {
-              scrollToInput(findNodeHandle(event.target));
-            }}
-          />
-          {loading && (
-            <ActivityIndicator
-              style={[styles.spinner, spinnerStyle]}
-              size={spinnerSize}
-              color={spinnerColor || theme.primary}
-            />
-          )}
-        </View>
-        {items && items.length > 0 && (
-          <Dropdown
-            ref={ref => {
-              this.dropdown = ref;
-            }}
-            dropdownPosition={0}
-            data={data ? filteredItems : items}
-            listHeader={listHeader}
-            inputValue={inputValue}
-            onChangeValue={this.setItem}
-            {...dropdownProps}
-          />
-        )}
-      </Fragment>
-    );
+    {renderIcon()}
+  <TextInput
+    ref={ref => {
+      this.container = ref;
+    }}
+    onBlur={event => this.handleBlur(event)}
+    style={[styles.input, inputStyle]}
+    placeholder={placeholder}
+    placeholderTextColor={placeholderColor || theme.textSecondary}
+    value={inputValue}
+    autoCorrect={autoCorrect}
+    onChangeText={text => this.handleInputChange(text)}
+    onFocus={event => {
+      scrollToInput(findNodeHandle(event.target));
+    }}
+    />
+    {loading && (
+    <ActivityIndicator
+      style={[styles.spinner, spinnerStyle]}
+      size={spinnerSize}
+      color={spinnerColor || theme.primary}
+      />
+    )}
+  </View>
+    {filteredItems && filteredItems.length > 0 && filteredItems[0] !== "NO_DATA" && (
+    <Dropdown
+      ref={ref => {
+      this.dropdown = ref;
+    }}
+      dropdownPosition={0}
+      data={data ? filteredItems : items}
+      listHeader={listHeader}
+      inputValue={inputValue}
+      onChangeValue={this.setItem}
+      {...dropdownProps}
+      />
+    )}
+  </Fragment>
+  );
   }
 }
 
@@ -199,7 +214,6 @@ Autocomplete.defaultProps = {
   minimumCharactersCount: 2,
   highlightText: true,
   waitInterval: WAIT_INTERVAL,
-  resetOnSelect: false,
 };
 
 Autocomplete.propTypes = {
@@ -213,7 +227,6 @@ Autocomplete.propTypes = {
   highlightText: bool,
   rightContent: bool,
   autoCorrect: bool,
-  resetOnSelect: bool,
 
   valueExtractor: func,
   renderIcon: func,
