@@ -29,7 +29,6 @@ class Autocomplete extends Component {
     this.promisifySetState = this.promisifySetState.bind(this);
   }
   static getDerivedStateFromProps(nextProps, state) {
-    console.log(nextProps);
     if(!state.hasChanged){
       return {
         inputValue: nextProps.inputValue,
@@ -120,7 +119,6 @@ class Autocomplete extends Component {
     this.setState({hasChanged: false,}, () => {
       this.setState({inputValue: capitalizedValue});
     });
-    console.log(capitalizedValue);
 
     handleSelectItem(value, index);
   }
@@ -160,8 +158,6 @@ class Autocomplete extends Component {
       data,
       ...dropdownProps
     } = this.props;
-    console.log(filteredItems);
-    console.log(data);
     return (
         <Fragment>
         <View style={[styles.inputContainerStyle, inputContainerStyle]}>
