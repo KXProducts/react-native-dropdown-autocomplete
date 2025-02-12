@@ -571,9 +571,9 @@ Dropdown.propTypes = {
   baseColor: PropTypes.string,
 
   itemTextStyle: Text.propTypes.style,
-  separatorStyle: (ViewPropTypes || View.propTypes).style,
-  listFooterStyle: (ViewPropTypes || View.propTypes).style,
-  listHeaderStyle: (ViewPropTypes || View.propTypes).style,
+  separatorStyle: (ViewPropTypes || View.propTypes || {}).style,
+  listFooterStyle: (ViewPropTypes || View.propTypes || {}).style,
+  listHeaderStyle: (ViewPropTypes || View.propTypes || {}).style,
   itemCount: PropTypes.number,
   itemPadding: PropTypes.number,
 
@@ -585,9 +585,9 @@ Dropdown.propTypes = {
   renderBase: PropTypes.func,
   renderAccessory: PropTypes.func,
 
-  containerStyle: (ViewPropTypes || View.propTypes).style,
-  overlayStyle: (ViewPropTypes || View.propTypes).style,
-  pickerStyle: (ViewPropTypes || View.propTypes).style,
+  containerStyle: (ViewPropTypes || View.propTypes || {}).style,
+  overlayStyle: (ViewPropTypes || View.propTypes || {}).style,
+  pickerStyle: (ViewPropTypes || View.propTypes || {}).style,
 
   supportedOrientations: PropTypes.arrayOf(PropTypes.string),
 
