@@ -144,6 +144,7 @@ Change valueExtractor and pass the data to Autocomplete without fetchDataUrl
  fetchDataUrl      | Data source url                               |   String | -
  noDataText        | Text to display when no results               |   String | No Results
  inputContainerStyle | Styles for autocomplete container           |   Object | -
+ inputValue        | Property set and accessed by parent component |   Object | -
  inputStyle        | Styles for autocomplete input                 |   Object | -
  spinnerStyle      | Styles for activity indicator                 |   Object | -
  noDataTextStyle   | Styles for empty results text                 |   Object | -
